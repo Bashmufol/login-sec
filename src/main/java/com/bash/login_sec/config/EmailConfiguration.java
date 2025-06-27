@@ -12,6 +12,8 @@ import java.util.Properties;
 public class EmailConfiguration {
     @Value("${spring.mail.username}")
     private String emailUsername;
+
+    // For Gmail with 2FA, this should be an App Password.
     @Value("${spring.mail.password}")
     private String emailPassword;
 
@@ -27,7 +29,7 @@ public class EmailConfiguration {
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
+        props.put("mail.debug", "true"); // Enable debug logging for troubleshooting.
         return mailSender;
     }
 }
