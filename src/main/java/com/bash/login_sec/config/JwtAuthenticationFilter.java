@@ -20,6 +20,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
+//Custom filter to intercept requests and authenticate users based on JWTs in the Authorization header.
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -33,6 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
+
+        // If no Authorization header or it doesn't start with "Bearer ",
+        // simply pass the request to the next filter in the chain.
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -41,8 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String jwt = authHeader.substring(7);
             final String userEmail = jwtService.extractUsername(jwt);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            // Authenticate if username is present in token AND no user is currently authenticated in the SecurityContext.
             if(userEmail != null && authentication == null){
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
+                // Create an authentication token for the authenticated user.
                 if(jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
                             null, userDetails.getAuthorities());
